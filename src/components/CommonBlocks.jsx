@@ -1,7 +1,6 @@
 export function BrandHeader({ links = [], user = 'EU' }) {
   return (
     <header className="brand-row">
-      <div className="brand">AI <span>HireAI Armenia</span></div>
       <div className="mini-links">{links.map((l) => <span key={l}>{l}</span>)}</div>
       <div className="avatar">{user}</div>
     </header>
