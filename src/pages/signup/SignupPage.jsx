@@ -1,16 +1,20 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Logo from '../../components/Logo';
+import { passwordHelpText, validateEmail, validatePassword, validateUserRole } from '../../utils/validation';
+
+const initialFormData = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  userType: '',
+  password: '',
+  confirmPassword: '',
+  termsAccepted: false,
+};
 
 export default function SignupPage() {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    userType: '',
-    password: '',
-    confirmPassword: '',
-    termsAccepted: false,
-  });
+  const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
@@ -20,9 +24,9 @@ export default function SignupPage() {
 
     if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!formData.email.includes('@')) newErrors.email = 'Valid email is required';
-    if (!formData.userType) newErrors.userType = 'Please select your role';
-    if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+    if (!validateEmail(formData.email)) newErrors.email = 'Please enter a valid email address';
+    if (!validateUserRole(formData.userType)) newErrors.userType = 'Please select your role';
+    if (!validatePassword(formData.password)) newErrors.password = passwordHelpText;
     if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
     if (!formData.termsAccepted) newErrors.termsAccepted = 'You must agree to the terms';
 
@@ -32,7 +36,7 @@ export default function SignupPage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
@@ -40,13 +44,11 @@ export default function SignupPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) return;
 
     setIsSubmitting(true);
 
     try {
-      // Simulate API call - backend will handle actual registration
       setTimeout(() => {
         setIsSubmitting(false);
         navigate('/login');
@@ -57,115 +59,96 @@ export default function SignupPage() {
     }
   };
 
-  const handleBackClick = () => {
-    navigate('/');
-  };
-
   return (
     <main className="page signup-page">
       <div className="signup-card">
-        <button className="back-btn" onClick={handleBackClick}>← Back to Home</button>
-        <div className="logo-center">AI</div>
-        <h2>Join HireAI Armenia</h2>
-        <p className="muted">Create your account to start transforming your hiring process</p>
-
+        <SignupHeader onBack={() => navigate('/')} />
         {errors.general && <div className="error-message">{errors.general}</div>}
-
-        <form onSubmit={handleSubmit}>
-          <div className="grid-2">
-            <div className="form-group">
-              <input
-                placeholder="First Name"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                className={errors.firstName ? 'input-error' : ''}
-              />
-              {errors.firstName && <span className="error-text">{errors.firstName}</span>}
-            </div>
-            <div className="form-group">
-              <input
-                placeholder="Last Name"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                className={errors.lastName ? 'input-error' : ''}
-              />
-              {errors.lastName && <span className="error-text">{errors.lastName}</span>}
-            </div>
-          </div>
-
-          <div className="form-group">
-            <input
-              placeholder="Email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              className={errors.email ? 'input-error' : ''}
-            />
-            {errors.email && <span className="error-text">{errors.email}</span>}
-          </div>
-
-          <div className="form-group">
-            <select
-              name="userType"
-              value={formData.userType}
-              onChange={handleChange}
-              className={errors.userType ? 'input-error' : ''}
-            >
-              <option value="">Select your role...</option>
-              <option value="employer">I am an Employer</option>
-              <option value="employee">I am a Job Seeker</option>
-              <option value="admin">I am an Administrator</option>
-            </select>
-            {errors.userType && <span className="error-text">{errors.userType}</span>}
-          </div>
-
-          <div className="form-group">
-            <input
-              placeholder="Password"
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className={errors.password ? 'input-error' : ''}
-            />
-            {errors.password && <span className="error-text">{errors.password}</span>}
-          </div>
-
-          <div className="form-group">
-            <input
-              placeholder="Confirm Password"
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              className={errors.confirmPassword ? 'input-error' : ''}
-            />
-            {errors.confirmPassword && <span className="error-text">{errors.confirmPassword}</span>}
-          </div>
-
-          <label className="terms">
-            <input
-              type="checkbox"
-              name="termsAccepted"
-              checked={formData.termsAccepted}
-              onChange={handleChange}
-            />
-            I agree to the Terms of Service and Privacy Policy
-          </label>
-          {errors.termsAccepted && <span className="error-text">{errors.termsAccepted}</span>}
-
-          <button type="submit" className="btn-dark full" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating Account...' : 'Create Account'}
-          </button>
-        </form>
-
+        <SignupForm
+          formData={formData}
+          errors={errors}
+          isSubmitting={isSubmitting}
+          onChange={handleChange}
+          onSubmit={handleSubmit}
+        />
         <div className="signin-redirect">
           <p>Already have an account? <a href="/login" className="link">Sign in here</a></p>
         </div>
       </div>
     </main>
+  );
+}
+
+function SignupHeader({ onBack }) {
+  return (
+    <>
+      <button className="back-btn" onClick={onBack}>← Back to Home</button>
+      <div className="logo-center wide">
+        <Logo />
+      </div>
+      <h2>Join HireAI Armenia</h2>
+      <p className="muted">Create your account to start transforming your hiring process</p>
+    </>
+  );
+}
+
+function SignupForm({ formData, errors, isSubmitting, onChange, onSubmit }) {
+  return (
+    <form onSubmit={onSubmit} noValidate>
+      <div className="grid-2">
+        <FormInput name="firstName" placeholder="First Name" value={formData.firstName} error={errors.firstName} onChange={onChange} />
+        <FormInput name="lastName" placeholder="Last Name" value={formData.lastName} error={errors.lastName} onChange={onChange} />
+      </div>
+      <FormInput name="email" type="email" placeholder="Email" value={formData.email} error={errors.email} onChange={onChange} />
+      <RoleSelect value={formData.userType} error={errors.userType} onChange={onChange} />
+      <FormInput name="password" type="password" placeholder="Password" value={formData.password} error={errors.password} onChange={onChange} />
+      <FormInput name="confirmPassword" type="password" placeholder="Confirm Password" value={formData.confirmPassword} error={errors.confirmPassword} onChange={onChange} />
+      <TermsCheckbox checked={formData.termsAccepted} error={errors.termsAccepted} onChange={onChange} />
+      <button type="submit" className="btn-dark full" disabled={isSubmitting}>
+        {isSubmitting ? 'Creating Account...' : 'Create Account'}
+      </button>
+    </form>
+  );
+}
+
+function FormInput({ name, value, error, onChange, type = 'text', placeholder }) {
+  return (
+    <div className="form-group">
+      <input
+        placeholder={placeholder}
+        name={name}
+        type={type}
+        value={value}
+        onChange={onChange}
+        className={error ? 'input-error' : ''}
+      />
+      {error && <span className="error-text">{error}</span>}
+    </div>
+  );
+}
+
+function RoleSelect({ value, error, onChange }) {
+  return (
+    <div className="form-group">
+      <select name="userType" value={value} onChange={onChange} className={error ? 'input-error' : ''}>
+        <option value="">Select your role...</option>
+        <option value="employer">I am an Employer</option>
+        <option value="employee">I am a Job Seeker</option>
+        <option value="admin">I am an Administrator</option>
+      </select>
+      {error && <span className="error-text">{error}</span>}
+    </div>
+  );
+}
+
+function TermsCheckbox({ checked, error, onChange }) {
+  return (
+    <>
+      <label className="terms">
+        <input type="checkbox" name="termsAccepted" checked={checked} onChange={onChange} />
+        I agree to the Terms of Service and Privacy Policy
+      </label>
+      {error && <span className="error-text">{error}</span>}
+    </>
   );
 }

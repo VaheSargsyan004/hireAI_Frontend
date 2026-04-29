@@ -1,23 +1,37 @@
 import { useState } from 'react';
-import { BrandHeader, EventCards } from '../../components/CommonBlocks';
+import { DashboardSection, EventCards, PageTitle } from '../../components/CommonBlocks';
+import { notify } from '../../utils/notifications';
+
+const initialEvents = [
+  { title: 'Interview - Tech Startup Hub', time: '2024-01-15 · 2:00 PM (45 mins)', metaA: 'Position: Frontend Developer', metaB: 'Virtual Meeting', status: 'confirmed', primary: 'Join Meeting' },
+  { title: 'Technical Assessment', time: '2024-01-16 · 10:00 AM (120 mins)', metaA: 'Position: Full Stack Developer', metaB: 'Online Platform', status: 'confirmed', primary: 'Get Directions' },
+  { title: 'Final Interview - CEO Meeting', time: '2024-01-18 · 4:00 PM (30 mins)', metaA: 'Position: Senior Developer', metaB: 'Krisp Office', status: 'scheduled', primary: 'Get Directions' },
+];
+
+const emptyForm = { title: '', company: '', position: '', date: '', time: '', duration: '45', location: '' };
+
+const checklistItems = [
+  ['Research company background and culture', true],
+  ['Review job description and requirements', true],
+  ['Prepare examples of past projects and achievements', false],
+  ['Prepare questions to ask the interviewer', false],
+  ['Test your internet connection and equipment', false],
+  ['Prepare professional attire', false],
+];
+
+const tips = [
+  ['💭 Before the Interview', ['Research the company thoroughly', 'Practice your elevator pitch', 'Prepare specific examples', 'Test your tech setup (for virtual)']],
+  ['✨ During the Interview', ['Make eye contact and smile', 'Listen carefully to questions', 'Provide detailed examples (STAR method)', 'Ask thoughtful questions']],
+  ['📧 After the Interview', ['Send a thank you email within 24h', 'Reference specific points discussed', 'Reiterate your interest', 'Stay professional and patient']],
+];
 
 export default function EmployeeSchedulePage() {
-  const [events, setEvents] = useState([
-    { title: 'Interview - Tech Startup Hub', time: '2024-01-15 · 2:00 PM (45 mins)', metaA: 'Position: Frontend Developer', metaB: 'Virtual Meeting', status: 'confirmed', primary: 'Join Meeting' },
-    { title: 'Technical Assessment', time: '2024-01-16 · 10:00 AM (120 mins)', metaA: 'Position: Full Stack Developer', metaB: 'Online Platform', status: 'confirmed', primary: 'Get Directions' },
-    { title: 'Final Interview - CEO Meeting', time: '2024-01-18 · 4:00 PM (30 mins)', metaA: 'Position: Senior Developer', metaB: 'Krisp Office', status: 'scheduled', primary: 'Get Directions' },
-  ]);
-
+  const [events, setEvents] = useState(initialEvents);
   const [showAddEvent, setShowAddEvent] = useState(false);
-  const [eventForm, setEventForm] = useState({
-    title: '',
-    company: '',
-    position: '',
-    date: '',
-    time: '',
-    duration: '45',
-    location: ''
-  });
+  const [eventForm, setEventForm] = useState(emptyForm);
+  const upcomingEvents = events.filter((event) => event.status !== 'rejected');
+
+  const updateField = (field, value) => setEventForm((current) => ({ ...current, [field]: value }));
 
   const handleAddEvent = (e) => {
     e.preventDefault();
@@ -30,192 +44,110 @@ export default function EmployeeSchedulePage() {
       primary: 'Join Meeting'
     };
     setEvents([...events, newEvent]);
-    setEventForm({ title: '', company: '', position: '', date: '', time: '', duration: '45', location: '' });
+    setEventForm(emptyForm);
     setShowAddEvent(false);
-    alert('Interview added to your schedule!');
+    notify('Interview added to your schedule.', 'success');
   };
-
-  const upcomingEvents = events.filter(e => e.status !== 'rejected');
 
   return (
     <main className="page dashboard">
-      <BrandHeader links={['Dashboard', 'Schedule', 'Find Jobs']} user="EU" />
-
-      <div className="title-row">
-        <div>
-          <h1>My Interview Schedule</h1>
-          <p className="muted">View your upcoming interviews and assessments</p>
-        </div>
-        <button className="btn-dark" onClick={() => setShowAddEvent(!showAddEvent)}>
-          {showAddEvent ? 'Cancel' : '+ Add Event'}
-        </button>
-      </div>
-
-      <div className="interview-stats">
-        <div className="stat-mini">
-          <h4>{upcomingEvents.length}</h4>
-          <p className="muted">Upcoming interviews</p>
-        </div>
-        <div className="stat-mini">
-          <h4>{events.filter(e => e.status === 'confirmed').length}</h4>
-          <p className="muted">Confirmed</p>
-        </div>
-        <div className="stat-mini">
-          <h4>{events.filter(e => e.status === 'pending' || e.status === 'scheduled').length}</h4>
-          <p className="muted">Pending confirmation</p>
-        </div>
-      </div>
-
-      {showAddEvent && (
-        <div className="add-event-form">
-          <h3>Add Interview to Schedule</h3>
-          <form onSubmit={handleAddEvent}>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Interview Title</label>
-                <input
-                  type="text"
-                  placeholder="e.g., Interview - Senior Developer"
-                  value={eventForm.title}
-                  onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Company Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g., Tech Armenia"
-                  value={eventForm.company}
-                  onChange={(e) => setEventForm({ ...eventForm, company: e.target.value })}
-                />
-              </div>
-              <div className="form-group">
-                <label>Position</label>
-                <input
-                  type="text"
-                  placeholder="e.g., Frontend Developer"
-                  value={eventForm.position}
-                  onChange={(e) => setEventForm({ ...eventForm, position: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Date</label>
-                <input
-                  type="date"
-                  value={eventForm.date}
-                  onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Time</label>
-                <input
-                  type="time"
-                  value={eventForm.time}
-                  onChange={(e) => setEventForm({ ...eventForm, time: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Duration (minutes)</label>
-                <input
-                  type="number"
-                  placeholder="45"
-                  value={eventForm.duration}
-                  onChange={(e) => setEventForm({ ...eventForm, duration: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Location / Meeting Details</label>
-              <input
-                type="text"
-                placeholder="Virtual Meeting, Office address, or meeting link"
-                value={eventForm.location}
-                onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })}
-              />
-            </div>
-
-            <div className="form-actions">
-              <button type="submit" className="btn-dark">Add to Schedule</button>
-              <button type="button" className="btn-light" onClick={() => setShowAddEvent(false)}>Cancel</button>
-            </div>
-          </form>
-        </div>
-      )}
-
+      <PageTitle
+        title="My Interview Schedule"
+        subtitle="View your upcoming interviews and assessments"
+        actions={<button className="btn-dark" onClick={() => setShowAddEvent(!showAddEvent)}>{showAddEvent ? 'Cancel' : '+ Add Event'}</button>}
+      />
+      <InterviewStats events={events} upcomingCount={upcomingEvents.length} />
+      {showAddEvent && <EmployeeEventForm eventForm={eventForm} onFieldChange={updateField} onSubmit={handleAddEvent} onCancel={() => setShowAddEvent(false)} />}
       <EventCards events={events} />
-
-      <section className="dashboard-section">
-        <h3>Interview Preparation Checklist</h3>
-        <div className="checklist">
-          <label className="checklist-item">
-            <input type="checkbox" defaultChecked />
-            <span>Research company background and culture</span>
-          </label>
-          <label className="checklist-item">
-            <input type="checkbox" defaultChecked />
-            <span>Review job description and requirements</span>
-          </label>
-          <label className="checklist-item">
-            <input type="checkbox" />
-            <span>Prepare examples of past projects and achievements</span>
-          </label>
-          <label className="checklist-item">
-            <input type="checkbox" />
-            <span>Prepare questions to ask the interviewer</span>
-          </label>
-          <label className="checklist-item">
-            <input type="checkbox" />
-            <span>Test your internet connection and equipment</span>
-          </label>
-          <label className="checklist-item">
-            <input type="checkbox" />
-            <span>Prepare professional attire</span>
-          </label>
-        </div>
-      </section>
-
-      <section className="dashboard-section">
-        <h3>Interview Tips & Resources</h3>
-        <div className="tips-grid">
-          <div className="tip-card">
-            <h4>💭 Before the Interview</h4>
-            <ul className="tips-list">
-              <li>Research the company thoroughly</li>
-              <li>Practice your elevator pitch</li>
-              <li>Prepare specific examples</li>
-              <li>Test your tech setup (for virtual)</li>
-            </ul>
-          </div>
-          <div className="tip-card">
-            <h4>✨ During the Interview</h4>
-            <ul className="tips-list">
-              <li>Make eye contact and smile</li>
-              <li>Listen carefully to questions</li>
-              <li>Provide detailed examples (STAR method)</li>
-              <li>Ask thoughtful questions</li>
-            </ul>
-          </div>
-          <div className="tip-card">
-            <h4>📧 After the Interview</h4>
-            <ul className="tips-list">
-              <li>Send a thank you email within 24h</li>
-              <li>Reference specific points discussed</li>
-              <li>Reiterate your interest</li>
-              <li>Stay professional and patient</li>
-            </ul>
-          </div>
-        </div>
-      </section>
+      <ChecklistSection />
+      <TipsSection />
     </main>
+  );
+}
+
+function InterviewStats({ events, upcomingCount }) {
+  const stats = [
+    ['Upcoming interviews', upcomingCount],
+    ['Confirmed', events.filter((event) => event.status === 'confirmed').length],
+    ['Pending confirmation', events.filter((event) => event.status === 'pending' || event.status === 'scheduled').length],
+  ];
+
+  return (
+    <div className="interview-stats">
+      {stats.map(([label, count]) => (
+        <div key={label} className="stat-mini">
+          <h4>{count}</h4>
+          <p className="muted">{label}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EmployeeEventForm({ eventForm, onFieldChange, onSubmit, onCancel }) {
+  return (
+    <div className="add-event-form">
+      <h3>Add Interview to Schedule</h3>
+      <form onSubmit={onSubmit}>
+        <div className="form-row">
+          <TextField label="Interview Title" placeholder="e.g., Interview - Senior Developer" value={eventForm.title} onChange={(value) => onFieldChange('title', value)} required />
+        </div>
+        <div className="form-row">
+          <TextField label="Company Name" placeholder="e.g., Tech Armenia" value={eventForm.company} onChange={(value) => onFieldChange('company', value)} />
+          <TextField label="Position" placeholder="e.g., Frontend Developer" value={eventForm.position} onChange={(value) => onFieldChange('position', value)} />
+        </div>
+        <div className="form-row">
+          <TextField type="date" label="Date" value={eventForm.date} onChange={(value) => onFieldChange('date', value)} required />
+          <TextField type="time" label="Time" value={eventForm.time} onChange={(value) => onFieldChange('time', value)} required />
+          <TextField type="number" label="Duration (minutes)" placeholder="45" value={eventForm.duration} onChange={(value) => onFieldChange('duration', value)} />
+        </div>
+        <TextField label="Location / Meeting Details" placeholder="Virtual Meeting, Office address, or meeting link" value={eventForm.location} onChange={(value) => onFieldChange('location', value)} />
+        <div className="form-actions">
+          <button type="submit" className="btn-dark">Add to Schedule</button>
+          <button type="button" className="btn-light" onClick={onCancel}>Cancel</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function TextField({ label, value, onChange, type = 'text', placeholder = '', required = false }) {
+  return (
+    <div className="form-group">
+      <label>{label}</label>
+      <input type={type} placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} required={required} />
+    </div>
+  );
+}
+
+function ChecklistSection() {
+  return (
+    <DashboardSection title="Interview Preparation Checklist">
+      <div className="checklist">
+        {checklistItems.map(([label, checked]) => (
+          <label key={label} className="checklist-item">
+            <input type="checkbox" defaultChecked={checked} />
+            <span>{label}</span>
+          </label>
+        ))}
+      </div>
+    </DashboardSection>
+  );
+}
+
+function TipsSection() {
+  return (
+    <DashboardSection title="Interview Tips & Resources">
+      <div className="tips-grid">
+        {tips.map(([title, items]) => (
+          <div key={title} className="tip-card">
+            <h4>{title}</h4>
+            <ul className="tips-list">
+              {items.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </DashboardSection>
   );
 }
